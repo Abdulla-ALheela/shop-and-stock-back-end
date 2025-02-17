@@ -26,6 +26,40 @@ router.get("/", verifyToken, async (req, res) => {
       res.status(500).json({ err: err.message });
     }
   });
+
+
+//SHOW LIST
+router.get('/:listId', verifyToken, async (req, res) => {
+  try {
+    const list = await List.findById(req.params.listId).populate("owner");
+    res.status(200).json(list);
+  } catch (err) {
+    res.status(500).json({ err: err.message });
+  }
+});
+
+
+
+   //DELETE LIST
+   router.delete("/:listId", verifyToken, async (req, res) => {
+    try {
+      const list = await List.findById(req.params.listId);
+  
+      if (!list) {
+        return res.status(403).send("List not found!");
+      }
+  
+      const deletedList = await List.findByIdAndDelete(req.params.listId);
+      res.status(200).json(deletedList);
+    } catch (err) {
+      res.status(500).json({ err: err.message });
+    }
+  });
+
+
+
+
+
   
 
 module.exports = router
