@@ -1,31 +1,119 @@
-const express = require('express')
-const router = express.Router()
-const List = require('../models/List')
-const verifyToken = require('../middleware/verify-token')
+const express = require('express');
+const router = express.Router();
+const List = require('../models/List');
+const verifyToken = require('../middleware/verify-token');
 
-
-//Create list 
+// Create list (POST)
 router.post("/", verifyToken, async (req, res) => {
-    try {
-      req.body.owner = req.user._id;
-      const list = await List.create(req.body);
-      list._doc.owner = req.user;
-      res.status(201).json(list);
-    } catch (err) {
-      res.status(500).json({ err: err.message });
-    }
-  });
+  try {
+    req.body.owner = req.user._id;
+    const list = await List.create(req.body);
+    list._doc.owner = req.user;
+    res.status(201).json(list);
+  } catch (err) {
+    res.status(500).json({ err: err.message });
+  }
+});
 
-
-//get all lists
+// Get all lists (GET)
 router.get("/", verifyToken, async (req, res) => {
-    try {
-      const lists = await List.find({}).populate("owner")
-      res.status(200).json(lists);
-    } catch (err) {
-      res.status(500).json({ err: err.message });
-    }
-  });
-  
+  try {
+    const lists = await List.find({}).populate("owner");
+    res.status(200).json(lists);
+  } catch (err) {
+    res.status(500).json({ err: err.message });
+  }
+});
 
-module.exports = router
+// Edit item in a list (PUT)
+router.put("/:listId/items/:itemId", verifyToken, async (req, res) => {
+  try {
+    // Find the list
+    const list = await List.findById(req.params.listId);
+    if (!list) {
+      return res.status(404).json({ msg: "List not found" });
+    }
+
+    // Check if user is owner of the list?
+    if (list.owner.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ msg: "You're not allowed to edit items in this list!" });
+    }
+
+    // Find the item index to update
+    const itemIndex = list.items.findIndex((item) => item._id.toString() === req.params.itemId);
+    if (itemIndex === -1) {
+      return res.status(404).json({ msg: "Item not found in the list" });
+    }
+
+    // Update the item using findOneAndUpdate
+    const updatedList = await List.findOneAndUpdate(
+      { _id: req.params.listId, "items._id": req.params.itemId },
+      { $set: { "items.$": { ...list.items[itemIndex], ...req.body } } },
+      { new: true }
+    );
+
+    // Retrieve the updated item and add user info to the item
+    const updatedItem = updatedList.items.find((item) => item._id.toString() === req.params.itemId);
+    updatedItem._doc.owner = req.user;
+
+    res.status(200).json(updatedItem);
+  } catch (err) {
+    res.status(500).json({ err: err.message });
+  }
+});
+
+// Delete item from a list (DELETE)
+router.delete("/:listId/items/:itemId", verifyToken, async (req, res) => {
+  try {
+    const list = await List.findById(req.params.listId);
+    if (!list) {
+      return res.status(404).json({ msg: "List not found" });
+    }
+
+    // Check if the user is the owner of the list
+    if (list.owner.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ msg: "You are not authorized to delete items from this list" });
+    }
+
+    // Find and remove the item from the list
+    const itemIndex = list.items.findIndex((item) => item._id.toString() === req.params.itemId);
+    if (itemIndex === -1) {
+      return res.status(404).json({ msg: "Item not found in the list" });
+    }
+
+    // Remove the item from the list
+    list.items.splice(itemIndex, 1);
+    await list.save();
+
+    res.status(200).json({ msg: "Item deleted successfully" });
+  } catch (err) {
+    res.status(500).json({ err: err.message });
+  }
+});
+
+// Update list details (PUT)
+router.put("/:listId", verifyToken, async (req, res) => {
+  try {
+    const list = await List.findById(req.params.listId);
+    if (!list) {
+      return res.status(404).json({ msg: "List not found" });
+    }
+
+    // Check if the user is the owner of the list
+    if (list.owner.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ msg: "You are not authorized to edit this list" });
+    }
+
+    // Update list details
+    list.title = req.body.title || list.title;
+    list.listType = req.body.listType || list.listType;
+
+    await list.save();
+
+    res.status(200).json(list);
+  } catch (err) {
+    res.status(500).json({ err: err.message });
+  }
+});
+
+module.exports = router;
