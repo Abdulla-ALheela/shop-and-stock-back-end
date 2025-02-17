@@ -27,5 +27,35 @@ router.get("/", verifyToken, async (req, res) => {
     }
   });
   
+// Add item to a list (POST)
+router.post("/:listId/items", verifyToken, async (req, res) => {
+  try {
+    const list = await List.findById(req.params.listId);
+    if (!list) {
+      return res.status(404).json({ msg: "List not found" });
+    }
+
+    // Check if the user is the owner of the list
+    if (list.owner.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ msg: "You are not authorized to add items to this list" });
+    }
+
+    // Create new item and add it to the list
+    const newItem = {
+      name: req.body.name,
+      quantity: req.body.quantity,
+      unit: req.body.unit,
+      isPurchased: req.body.isPurchased || false,
+    };
+
+    list.items.push(newItem);
+    await list.save();
+
+    res.status(201).json(newItem);
+  } catch (err) {
+    res.status(500).json({ err: err.message });
+  }
+});
+
 
 module.exports = router
