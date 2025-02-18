@@ -18,7 +18,7 @@ router.post("/", verifyToken, async (req, res) => {
 
 
 //get all lists
-router.get("/", async (req, res) => {
+router.get("/", verifyToken,async (req, res) => {
     try {
       const lists = await List.find({}).populate("owner")
       res.status(200).json(lists);
@@ -92,7 +92,7 @@ router.put('/:listId', verifyToken, async (req, res) => {
     const list = await List.findById(req.params.listId);
 
    
-     if (!list.owner.equals(req.user._id)) {
+    if (!list.owner.equals(req.user._id)) {
       return res.status(403).send("You're not allowed to do that!");
     }
 
