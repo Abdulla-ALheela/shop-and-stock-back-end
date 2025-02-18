@@ -5,6 +5,8 @@ const app = express()
 const mongoose = require('mongoose')
 const cors = require('cors')
 const logger = require('morgan')
+
+// Controllers
 const testJwtRouter = require('./controllers/test-jwt')
 const authRouter = require('./controllers/auth')
 const usersRouter = require('./controllers/users')
@@ -31,4 +33,3 @@ app.use("/lists", listsRouter);
 app.listen( process.env.PORT || 3000, () => {
     console.log("The express app is ready")
 })
-
