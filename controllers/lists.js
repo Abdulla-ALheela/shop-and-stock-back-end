@@ -104,6 +104,43 @@ router.put("/:listId", verifyToken, async (req, res) => {
       return res.status(403).json({ msg: "You are not authorized to edit this list" });
     }
 
+  });
+
+
+//SHOW LIST
+router.get('/:listId', verifyToken, async (req, res) => {
+  try {
+    const list = await List.findById(req.params.listId).populate("owner");
+    res.status(200).json(list);
+  } catch (err) {
+    res.status(500).json({ err: err.message });
+  }
+});
+
+
+
+   //DELETE LIST
+   router.delete("/:listId", verifyToken, async (req, res) => {
+    try {
+      const list = await List.findById(req.params.listId);
+  
+      if (!list) {
+        return res.status(403).send("List not found!");
+      }
+  
+      const deletedList = await List.findByIdAndDelete(req.params.listId);
+      res.status(200).json(deletedList);
+    } catch (err) {
+      res.status(500).json({ err: err.message });
+    }
+  });
+
+
+
+
+
+
+
     // Update list details
     list.title = req.body.title || list.title;
     list.listType = req.body.listType || list.listType;
