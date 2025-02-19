@@ -1,3 +1,12 @@
+const express = require('express')
+const router = express.Router()
+const List = require('../models/List')
+const verifyToken = require('../middleware/verify-token')
+
+
+
+  
+
 // Add item to a list (POST)
 router.post('/:listId/items',verifyToken,  async (req, res) => {
   try {
@@ -20,6 +29,9 @@ router.post('/:listId/items',verifyToken,  async (req, res) => {
     res.status(500).json({ err: err.message });
   }
 });
+ 
+
+//lists.js
 
 router.put('/:listId', verifyToken, async (req, res) => {
   try {
@@ -47,5 +59,6 @@ router.put('/:listId', verifyToken, async (req, res) => {
     res.status(500).json({ err: err.message });
   }
 });
-   
+
+    
 module.exports = router;
