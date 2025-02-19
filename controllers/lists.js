@@ -30,7 +30,6 @@ router.post('/:listId/items',verifyToken,  async (req, res) => {
   }
 });
  
-
 //lists.js
 
 router.put('/:listId', verifyToken, async (req, res) => {
