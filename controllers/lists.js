@@ -18,7 +18,7 @@ router.post("/", verifyToken, async (req, res) => {
 // Get all lists (GET)
 router.get("/", verifyToken, async (req, res) => {
   try {
-    const lists = await List.find({}).populate("owner").sort({ createdAt: "ascending" });
+    const lists = await List.find({}).populate("owner")
     res.status(200).json(lists);
   } catch (err) {
     res.status(500).json({ err: err.message });
