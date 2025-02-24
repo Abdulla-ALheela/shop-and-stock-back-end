@@ -108,6 +108,8 @@ router.put("/:listId/items/:itemId", verifyToken, async (req, res) => {
   try {
     // Find the list
     const list = await List.findById(req.params.listId);
+    const item = list.items.id(req.params.itemId);
+
     if (!list) {
       return res.status(404).json({ msg: "List not found" });
     }
@@ -123,18 +125,17 @@ router.put("/:listId/items/:itemId", verifyToken, async (req, res) => {
       return res.status(404).json({ msg: "Item not found in the list" });
     }
 
-    // Update the item using findOneAndUpdate
-    const updatedList = await List.findOneAndUpdate(
-      { _id: req.params.listId, "items._id": req.params.itemId },
-      { $set: { "items.$": { ...list.items[itemIndex], ...req.body } } },
-      { new: true }
-    );
+    
+    item.name = item.name || req.body.name
+    item.quantity = item.quantity || req.body.quantity
+    item.unit = item.unit || req.body.unit
+    item.isPurchased = !req.body.isPurchased
 
-    // Retrieve the updated item and add user info to the item
-    const updatedItem = updatedList.items.find((item) => item._id.toString() === req.params.itemId);
-    updatedItem._doc.owner = req.user;
 
-    res.status(200).json(updatedItem);
+
+    await list.save()
+
+    res.status(200).json(item);
   } catch (err) {
     res.status(500).json({ err: err.message });
   }
