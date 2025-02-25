@@ -103,9 +103,25 @@ router.post('/:listId/items',verifyToken,  async (req, res) => {
 });
 
 
+// Get item (SHOW ITEM)
+router.get("/:listId/items/:itemId", verifyToken, async (req, res) => {
+  try {
+    
+    const list = await List.findById(req.params.listId);
+    const item = list.items.id(req.params.itemId);
+    
+
+    res.status(200).json(item);
+  } catch (err) {
+    res.status(500).json({ err: err.message });
+  }
+});
+
 // Edit item in a list (PUT)
 router.put("/:listId/items/:itemId", verifyToken, async (req, res) => {
   try {
+
+
     // Find the list
     const list = await List.findById(req.params.listId);
     const item = list.items.id(req.params.itemId);
