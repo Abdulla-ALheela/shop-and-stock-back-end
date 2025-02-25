@@ -142,9 +142,9 @@ router.put("/:listId/items/:itemId", verifyToken, async (req, res) => {
     }
 
     
-    item.name = item.name || req.body.name
-    item.quantity = item.quantity || req.body.quantity
-    item.unit = item.unit || req.body.unit
+    item.name = req.body.name
+    item.quantity =  req.body.quantity
+    item.unit = req.body.unit
     item.isPurchased = !req.body.isPurchased
 
 
