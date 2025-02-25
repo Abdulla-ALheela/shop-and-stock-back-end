@@ -145,8 +145,44 @@ router.put("/:listId/items/:itemId", verifyToken, async (req, res) => {
     item.name = req.body.name !== undefined ? req.body.name : item.name;
     item.quantity = req.body.quantity !== undefined ? req.body.quantity : item.quantity;
     item.unit = req.body.unit !== undefined ? req.body.unit : item.unit;
-    item.isPurchased = !req.body.isPurchased
 
+    
+    await list.save()
+
+    res.status(200).json(item);
+  } catch (err) {
+    res.status(500).json({ err: err.message });
+  }
+});
+
+// CHECK ITEM (PUT)
+router.put("/:listId/items/:itemId/check", verifyToken, async (req, res) => {
+  try {
+
+    // Find the list
+    const list = await List.findById(req.params.listId);
+    const item = list.items.id(req.params.itemId);
+
+    if (!list) {
+      return res.status(404).json({ msg: "List not found" });
+    }
+
+    // Check if user is owner of the list?
+    if (list.owner.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ msg: "You're not allowed to edit items in this list!" });
+    }
+
+    // Find the item index to update
+    const itemIndex = list.items.findIndex((item) => item._id.toString() === req.params.itemId);
+    if (itemIndex === -1) {
+      return res.status(404).json({ msg: "Item not found in the list" });
+    }
+
+    item.isPurchased = !req.body.isPurchased
+    console.log("here")
+
+
+    
     await list.save()
 
     res.status(200).json(item);
