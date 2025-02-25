@@ -82,6 +82,7 @@ router.put('/:listId', verifyToken, async (req, res) => {
 // Add item to a list (POST)
 router.post('/:listId/items',verifyToken,  async (req, res) => {
   try {
+    console.log("hello")
     req.body.owner = req.user._id;
     const list = await List.findById(req.params.listId);
     if (!list) {
@@ -121,7 +122,6 @@ router.get("/:listId/items/:itemId", verifyToken, async (req, res) => {
 router.put("/:listId/items/:itemId", verifyToken, async (req, res) => {
   try {
 
-
     // Find the list
     const list = await List.findById(req.params.listId);
     const item = list.items.id(req.params.itemId);
@@ -142,12 +142,10 @@ router.put("/:listId/items/:itemId", verifyToken, async (req, res) => {
     }
 
     
-    item.name = req.body.name
-    item.quantity =  req.body.quantity
-    item.unit = req.body.unit
+    item.name = req.body.name !== undefined ? req.body.name : item.name;
+    item.quantity = req.body.quantity !== undefined ? req.body.quantity : item.quantity;
+    item.unit = req.body.unit !== undefined ? req.body.unit : item.unit;
     item.isPurchased = !req.body.isPurchased
-
-
 
     await list.save()
 
